@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agendar Horário — AgendAI</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+/* Base Styles matching index.html */
+:root {
+  --bg-900: #0b0f0e;
+  --bg-800: #101612;
+  --bg-700: #161d18;
+  --bg-600: #1c261e;
+  --bg-500: #243028;
+  --card: #121a14;
+  --card-border: #1f2e22;
+  --blue-500: #1a9e6e;
+  --blue-400: #22c88a;
+  --blue-300: #4edda8;
+  --cyan: #f0a500;
+  --text-100: #eef4f0;
+  --text-300: #8aaa92;
+  --text-500: #4a6352;
+  --radius: 14px;
+  --radius-sm: 8px;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family:'DM Sans', sans-serif; background: var(--bg-900); color: var(--text-100); min-height: 100vh;
+}
+.navbar { padding: 20px 48px; border-bottom: 1px solid var(--card-border); display: flex; justify-content: space-between; align-items: center; background: rgba(11,15,14,0.88); backdrop-filter: blur(18px); position: sticky; top: 0; z-index: 100; }
+.logo { font-family:'Syne', sans-serif; font-weight:800; font-size:1.4rem; background: linear-gradient(135deg, var(--blue-300), var(--cyan)); -webkit-background-clip: text; -webkit-text-fill-color:transparent; letter-spacing:-0.5px; }
+
+.container { max-width: 700px; margin: 60px auto; padding: 0 24px; }
+.step-title { font-family:'Syne', sans-serif; font-size: 1.8rem; font-weight: 800; margin-bottom: 8px; }
+.step-desc { color: var(--text-300); font-size: .95rem; margin-bottom: 32px; }
+
+.grid { display: grid; grid-template-columns: 1fr; gap: 16px; margin-bottom: 32px; }
+@media(min-width:500px) { .grid { grid-template-columns: 1fr 1fr; } }
+
+.card-opt {
+  background: var(--bg-800); border: 2px solid var(--card-border); border-radius: var(--radius);
+  padding: 20px; cursor: pointer; transition: 0.2s; position: relative; overflow: hidden;
+}
+.card-opt:hover { border-color: rgba(34,200,138,0.3); transform: translateY(-2px); }
+.card-opt.selected { border-color: var(--blue-400); background: var(--bg-700); box-shadow: 0 0 0 2px rgba(34,200,138,0.2); }
+.card-opt.selected::after {
+  content: "✓"; position: absolute; top: 16px; right: 16px; color: var(--blue-300); font-weight: 800;
+}
+.card-title { font-weight: 600; font-size: 1.05rem; margin-bottom: 6px; }
+.card-sub { font-size: .85rem; color: var(--text-500); }
+.card-price { font-size: .95rem; color: var(--blue-400); font-weight: 600; margin-top: 12px; }
+
+.form-group { margin-bottom: 20px; }
+.form-label { display: block; font-size: .88rem; color: var(--text-300); font-weight: 500; margin-bottom: 8px; }
+.form-input { width: 100%; background: var(--bg-800); border: 1px solid var(--card-border); border-radius: var(--radius-sm); padding: 14px 16px; color: var(--text-100); font-family: 'DM Sans', sans-serif; font-size: 1rem; transition: .2s; outline: none; color-scheme: dark; }
+.form-input:focus { border-color: var(--blue-400); box-shadow: 0 0 0 3px rgba(34,200,138,0.12); }
+
+.time-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 10px; }
+.time-slot { background: var(--bg-800); border: 1px solid var(--card-border); border-radius: var(--radius-sm); padding: 12px 0; text-align: center; cursor: pointer; font-size: .9rem; transition: .2s; }
+.time-slot:hover { border-color: rgba(34,200,138,0.3); }
+.time-slot.selected { background: var(--blue-500); border-color: var(--blue-400); font-weight: 600; }
+
+.btn-primary { width: 100%; padding: 16px; border-radius: var(--radius-sm); background: linear-gradient(135deg, #1a9e6e, #157a55); color: #fff; border: none; font-family: 'DM Sans', sans-serif; font-size: 1rem; font-weight: 600; cursor: pointer; box-shadow: 0 0 20px rgba(26,158,110,0.35); transition: .2s; margin-top: 20px; }
+.btn-primary:hover:not(:disabled) { box-shadow: 0 0 30px rgba(26,158,110,0.55); transform: translateY(-2px); }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+.step { display: none; animation: fadeUp .4s ease both; }
+.step.active { display: block; }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+
+.receipt { background: var(--bg-800); border: 1px solid var(--card-border); border-radius: var(--radius); padding: 24px; text-align: center; }
+.receipt-icon { font-size: 3rem; margin-bottom: 16px; }
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="logo">AgendAI</div>
+  <a href="index.html" style="color:var(--text-300);text-decoration:none;font-size:0.9rem;">Voltar ao Site</a>
+</nav>
+
+<div class="container">
+  
+  <!-- Step 1: Services -->
+  <div id="step1" class="step active">
+    <div class="step-title">O que você precisa hoje?</div>
+    <div class="step-desc">Selecione o serviço desejado.</div>
+    <div class="grid" id="servicesGrid">
+      <div style="color:var(--text-500);">Carregando serviços...</div>
+    </div>
+    <button class="btn-primary" id="btnNext1" disabled onclick="nextStep(2)">Continuar →</button>
+  </div>
+
+  <!-- Step 2: Professional -->
+  <div id="step2" class="step">
+    <div class="step-title">Escolha o Profissional</div>
+    <div class="step-desc">Quem fará o seu atendimento?</div>
+    <div class="grid" id="profsGrid">
+      <!-- loaded via js -->
+    </div>
+    <div style="display:flex;gap:12px;">
+      <button class="btn-primary" style="background:transparent;border:1px solid var(--card-border);color:var(--text-300);box-shadow:none;" onclick="nextStep(1)">← Voltar</button>
+      <button class="btn-primary" id="btnNext2" disabled onclick="nextStep(3)">Continuar →</button>
+    </div>
+  </div>
+
+  <!-- Step 3: Date & Time -->
+  <div id="step3" class="step">
+    <div class="step-title">Qual o melhor horário?</div>
+    <div class="step-desc">Escolha quando deseja ser atendido.</div>
+    
+    <div class="form-group">
+      <label class="form-label">Data</label>
+      <input type="date" id="aptDate" class="form-input" onchange="generateTimeSlots()">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Horários Disponíveis</label>
+      <div class="time-grid" id="timeGrid">
+         <div style="grid-column:1/-1;color:var(--text-500);font-size:.9rem;">Selecione uma data acima.</div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:12px;">
+      <button class="btn-primary" style="background:transparent;border:1px solid var(--card-border);color:var(--text-300);box-shadow:none;" onclick="nextStep(2)">← Voltar</button>
+      <button class="btn-primary" id="btnNext3" disabled onclick="nextStep(4)">Continuar →</button>
+    </div>
+  </div>
+
+  <!-- Step 4: Details & Confirm -->
+  <div id="step4" class="step">
+    <div class="step-title">Último passo!</div>
+    <div class="step-desc">Confirme seus dados para finalizar o agendamento.</div>
+    
+    <div class="form-group">
+      <label class="form-label">Qual o seu nome completo?</label>
+      <input type="text" id="custName" class="form-input" placeholder="Ex: João Silva" oninput="checkFinal()">
+    </div>
+
+    <div class="receipt" style="text-align:left;margin-bottom:20px;">
+      <div style="font-weight:600;margin-bottom:8px;">Resumo do Agendamento</div>
+      <div style="font-size:0.9rem;color:var(--text-300);line-height:1.6;" id="summaryText">
+        <!-- populated via js -->
+      </div>
+    </div>
+
+    <div style="display:flex;gap:12px;">
+      <button class="btn-primary" id="btnBack4" style="background:transparent;border:1px solid var(--card-border);color:var(--text-300);box-shadow:none;" onclick="nextStep(3)">← Voltar</button>
+      <button class="btn-primary" id="btnConfirm" disabled onclick="confirmBooking()">Confirmar Agendamento</button>
+    </div>
+  </div>
+
+  <!-- Step 5: Success -->
+  <div id="step5" class="step">
+    <div class="receipt">
+      <div class="receipt-icon">🎉</div>
+      <div class="step-title">Agendamento Confirmado!</div>
+      <div class="step-desc" style="margin-bottom:0;" id="successDesc">Te esperamos no dia X às Y.</div>
+      <button class="btn-primary" style="margin-top:32px;" onclick="window.location.reload()">Novo Agendamento</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const API_URL = 'http://localhost:3000/api';
+let appointment = { serviceId: null, profId: null, date: '', time: '', name: '' };
+let servicesCache = [];
+let profsCache = [];
+let serviceObj = null;
+let profObj = null;
+
+async function initBooking() {
+  try {
+    const res = await fetch(`${API_URL}/services`);
+    servicesCache = await res.json();
+    renderServices();
+    
+    const pRes = await fetch(`${API_URL}/professionals`);
+    profsCache = await pRes.json();
+  } catch(e) {
+    document.getElementById('servicesGrid').innerHTML = '<div style="color:#ef4444;">Erro ao carregar serviços. Servidor offline?</div>';
+  }
+  
+  // Set min date to today
+  const tzoffset = (new Date()).getTimezoneOffset() * 60000;
+  const localISOTime = (new Date(Date.now() - tzoffset)).toISOString().slice(0, -1);
+  const today = localISOTime.split('T')[0];
+  document.getElementById('aptDate').min = today;
+}
+
+function renderServices() {
+  const grid = document.getElementById('servicesGrid');
+  if(servicesCache.length === 0) { grid.innerHTML = '<div style="grid-column:1/-1;color:var(--text-500);">Nenhum serviço cadastrado ainda.</div>'; return; }
+  
+  grid.innerHTML = servicesCache.map(s => `
+    <div class="card-opt ${appointment.serviceId === s.id ? 'selected' : ''}" onclick="selectService(${s.id})">
+      <div class="card-title">${s.name}</div>
+      <div class="card-sub">${s.duration}</div>
+      <div class="card-price">R$ ${s.price.toFixed(2)}</div>
+    </div>
+  `).join('');
+}
+
+function selectService(id) {
+  appointment.serviceId = id;
+  serviceObj = servicesCache.find(s => s.id === id);
+  renderServices();
+  document.getElementById('btnNext1').disabled = false;
+}
+
+function nextStep(n) {
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+  document.getElementById('step'+n).classList.add('active');
+  window.scrollTo(0,0);
+  
+  if(n === 2) renderProfs();
+  if(n === 4) buildSummary();
+}
+
+function renderProfs() {
+  const grid = document.getElementById('profsGrid');
+  if(profsCache.length === 0) { grid.innerHTML = '<div style="grid-column:1/-1;color:var(--text-500);">Nenhum profissional cadastrado.</div>'; return; }
+
+  grid.innerHTML = profsCache.map(p => `
+    <div class="card-opt ${appointment.profId === p.id ? 'selected' : ''}" onclick="selectProf(${p.id})">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div style="width:40px;height:40px;border-radius:50%;background:${p.color || '#1a9e6e'};display:flex;align-items:center;justify-content:center;font-weight:700;">${p.name.charAt(0)}</div>
+        <div>
+          <div class="card-title" style="margin:0;">${p.name}</div>
+          <div class="card-sub" style="margin-top:4px;">${p.role}</div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function selectProf(id) {
+  appointment.profId = id;
+  profObj = profsCache.find(p => p.id === id);
+  renderProfs();
+  document.getElementById('btnNext2').disabled = false;
+}
+
+function generateTimeSlots() {
+  appointment.date = document.getElementById('aptDate').value;
+  appointment.time = '';
+  document.getElementById('btnNext3').disabled = true;
+  
+  const grid = document.getElementById('timeGrid');
+  if(!appointment.date) return;
+  
+  const slots = ['09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30'];
+  
+  grid.innerHTML = slots.map(t => `
+    <div class="time-slot" id="slot-${t.replace(':','')}" onclick="selectTime('${t}')">${t}</div>
+  `).join('');
+}
+
+function selectTime(t) {
+  appointment.time = t;
+  document.querySelectorAll('.time-slot').forEach(el => el.classList.remove('selected'));
+  document.getElementById(`slot-${t.replace(':','')}`).classList.add('selected');
+  document.getElementById('btnNext3').disabled = false;
+}
+
+function checkFinal() {
+  appointment.name = document.getElementById('custName').value.trim();
+  document.getElementById('btnConfirm').disabled = appointment.name.length < 3;
+}
+
+function buildSummary() {
+  const s = document.getElementById('summaryText');
+  const dParts = appointment.date.split('-');
+  const fDate = `${dParts[2]}/${dParts[1]}/${dParts[0]}`;
+  
+  s.innerHTML = `
+    <strong>Serviço:</strong> ${serviceObj.name} (R$ ${serviceObj.price.toFixed(2)})<br>
+    <strong>Profissional:</strong> ${profObj.name}<br>
+    <strong>Data e Hora:</strong> ${fDate} às ${appointment.time}
+  `;
+}
+
+async function confirmBooking() {
+  const btn = document.getElementById('btnConfirm');
+  btn.disabled = true;
+  btn.textContent = 'Aguarde...';
+  
+  const payload = {
+    customer_name: appointment.name,
+    service_id: appointment.serviceId,
+    professional_id: appointment.profId,
+    date: appointment.date,
+    time: appointment.time,
+    status: 'pending' // Initial status
+  };
+  
+  try {
+    await fetch(`${API_URL}/appointments`, {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json' },
+      body: JSON.stringify(payload)
+    });
+    
+    document.getElementById('successDesc').textContent = `Te esperamos no dia ${appointment.date.split('-').reverse().join('/')} às ${appointment.time}. Acompanhe pelo seu WhatsApp!`;
+    nextStep(5);
+  } catch(e) {
+    alert('Erro ao confirmar o agendamento.');
+    btn.disabled = false;
+    btn.textContent = 'Confirmar Agendamento';
+  }
+}
+
+initBooking();
+</script>
+</body>
+</html>
