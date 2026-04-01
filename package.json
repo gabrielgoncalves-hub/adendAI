@@ -1,0 +1,19 @@
+{
+  "name": "projeto-css-2026",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "deploy": "node -e \"fetch('https://api.render.com/deploy/srv-d76p4ouslomc73ciqhc0?key=nvPR8FU8JXU', { method: 'POST' })\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@libsql/client": "^0.17.2",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.0",
+    "express": "^5.2.1"
+  }
+}
