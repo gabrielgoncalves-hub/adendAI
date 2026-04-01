@@ -4,7 +4,7 @@ const db = require('./database.js');
 const crypto = require('crypto');
 
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 
 // Simple native session store & hash utility
 const activeSessions = new Map();
@@ -398,6 +398,6 @@ app.get('/api/bot/logs', (req, res) => {
   res.json(logs);
 });
 
-app.listen(port, () => {
-  console.log(`🚀 Servidor rodando em http://localhost:${port}`);
+app.listen(port, '0.0.0.0', () => {
+  console.log(`🚀 Servidor rodando na porta ${port}`);
 });
