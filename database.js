@@ -31,6 +31,7 @@ const initDb = async () => {
   await db.exec(`
     CREATE TABLE IF NOT EXISTS services (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER,
       name TEXT NOT NULL,
       category TEXT,
       price REAL NOT NULL,
@@ -42,6 +43,7 @@ const initDb = async () => {
     
     CREATE TABLE IF NOT EXISTS professionals (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER,
       name TEXT NOT NULL,
       role TEXT,
       phone TEXT,
@@ -54,6 +56,7 @@ const initDb = async () => {
     
     CREATE TABLE IF NOT EXISTS appointments (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER,
       customer_name TEXT NOT NULL,
       service_id INTEGER,
       professional_id INTEGER,
@@ -73,6 +76,7 @@ const initDb = async () => {
     
     CREATE TABLE IF NOT EXISTS bot_settings (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER UNIQUE,
       auto_confirm INTEGER DEFAULT 1,
       smart_reminders INTEGER DEFAULT 1,
       waitlist INTEGER DEFAULT 0,
@@ -81,17 +85,20 @@ const initDb = async () => {
 
     CREATE TABLE IF NOT EXISTS bot_logs (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER,
       recipient_name TEXT NOT NULL,
       message TEXT NOT NULL,
       status TEXT DEFAULT 'sent',
       sent_at TEXT NOT NULL
     );
-
-    INSERT INTO bot_settings (id) SELECT 1 WHERE NOT EXISTS (SELECT 1 FROM bot_settings WHERE id = 1);
   `);
 
-  try { await client.execute("ALTER TABLE users ADD COLUMN business_name TEXT DEFAULT 'Barbearia Corte Certo';"); } catch(e) {}
-  try { await client.execute("ALTER TABLE users ADD COLUMN plan_type TEXT DEFAULT 'Plano Gratuito';"); } catch(e) {}
+  // Migrations for existing Databases
+  try { await client.execute("ALTER TABLE services ADD COLUMN user_id INTEGER;"); } catch(e) {}
+  try { await client.execute("ALTER TABLE professionals ADD COLUMN user_id INTEGER;"); } catch(e) {}
+  try { await client.execute("ALTER TABLE appointments ADD COLUMN user_id INTEGER;"); } catch(e) {}
+  try { await client.execute("ALTER TABLE bot_settings ADD COLUMN user_id INTEGER;"); } catch(e) {}
+  try { await client.execute("ALTER TABLE bot_logs ADD COLUMN user_id INTEGER;"); } catch(e) {}
 };
 
 module.exports = { db, initDb };
