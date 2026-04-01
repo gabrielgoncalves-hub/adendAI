@@ -2,7 +2,7 @@
   <img src="https://i.ibb.co/689NfR6/icon.png" width="120" alt="AgendAI Logo">
   # AgendAI - A Automação Inteligente
   
-  **O futuro do gerenciamento para barbearias, salões e profissionais de serviço.**
+**O futuro do gerenciamento para barbearias, salões e profissionais de serviço.**
   <br>🚀 Uma plataforma completa Full-Stack com foco em experiência Premium, Dashboard interativo e Simulador de Inteligência Artificial para Automação via WhatsApp.
 </div>
 ---
