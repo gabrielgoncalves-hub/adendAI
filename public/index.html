@@ -3239,12 +3239,21 @@
     }
 
     async function loadServices() {
+      if (!authToken) return;
       try {
-        const res = await fetch(`${API_URL}/services`);
+        const res = await fetch(`${API_URL}/services`, { headers: { 'Authorization': 'Bearer ' + authToken } });
         const services = await res.json();
         const grid = document.getElementById('servicesGrid');
         const title = document.getElementById('servicesTitle');
         if (!grid) return;
+        
+        // Check if services is an array (prevent undefined error)
+        if (!Array.isArray(services)) {
+           title.textContent = "Serviços (0)";
+           grid.innerHTML = '<div style="color:var(--text-500);padding:24px;">Nenhum serviço cadastrado.</div>';
+           return;
+        }
+
         title.textContent = `Serviços Cadastrados (${services.length})`;
         grid.innerHTML = services.map(s => `
       <div class="svc-reg-card">
@@ -3275,7 +3284,7 @@
       if (!payload.name) return alert('Nome é obrigatório');
       await fetch(`${API_URL}/services`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + authToken },
         body: JSON.stringify(payload)
       });
       showToast('Serviço cadastrado com sucesso!');
@@ -3285,17 +3294,25 @@
 
     async function deleteService(id) {
       if (!confirm('Excluir serviço?')) return;
-      await fetch(`${API_URL}/services/${id}`, { method: 'DELETE' });
+      await fetch(`${API_URL}/services/${id}`, { method: 'DELETE', headers: { 'Authorization': 'Bearer ' + authToken } });
       loadServices();
     }
 
     async function loadProfessionals() {
+      if (!authToken) return;
       try {
-        const res = await fetch(`${API_URL}/professionals`);
+        const res = await fetch(`${API_URL}/professionals`, { headers: { 'Authorization': 'Bearer ' + authToken } });
         const profs = await res.json();
         const grid = document.getElementById('profissionaisGrid');
         const title = document.getElementById('profissionaisTitle');
         if (!grid) return;
+        
+        if (!Array.isArray(profs)) {
+           title.textContent = "Equipe (0 profissionais)";
+           grid.innerHTML = '';
+           return;
+        }
+
         title.textContent = `Equipe (${profs.length} profissionais)`;
         grid.innerHTML = profs.map(p => {
           let tags = [];
@@ -3339,7 +3356,7 @@
       if (!payload.name) return alert('Nome é obrigatório');
       await fetch(`${API_URL}/professionals`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + authToken },
         body: JSON.stringify(payload)
       });
       showToast('Profissional cadastrado com sucesso!');
@@ -3349,16 +3366,21 @@
 
     async function deleteProfessional(id) {
       if (!confirm('Excluir profissional?')) return;
-      await fetch(`${API_URL}/professionals/${id}`, { method: 'DELETE' });
+      await fetch(`${API_URL}/professionals/${id}`, { method: 'DELETE', headers: { 'Authorization': 'Bearer ' + authToken } });
       loadProfessionals();
     }
 
     async function loadAllAppointments() {
+      if (!authToken) return;
       try {
-        const res = await fetch(`${API_URL}/appointments`);
+        const res = await fetch(`${API_URL}/appointments`, { headers: { 'Authorization': 'Bearer ' + authToken } });
         const apts = await res.json();
         const list = document.getElementById('allAptsList');
         if (!list) return;
+        if (!Array.isArray(apts)) {
+           list.innerHTML = '<div style="color:var(--text-500);padding:24px;">Problema ao carregar agendamentos.</div>';
+           return;
+        }
         if (apts.length === 0) {
           list.innerHTML = '<div style="color:var(--text-500);padding:24px;">Nenhum agendamento encontrado no sistema.</div>';
           return;
@@ -3397,7 +3419,7 @@
 
       await fetch(`${API_URL}/appointments/${id}/status`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + authToken },
         body: JSON.stringify({ status: next })
       });
       loadAllAppointments();
@@ -3694,7 +3716,7 @@
 
       await fetch(`${API_URL}/appointments/${id}/status`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + authToken },
         body: JSON.stringify({ status: next })
       });
 
