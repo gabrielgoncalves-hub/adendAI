@@ -165,6 +165,9 @@ body {
 
 <script>
 const API_URL = '/api';
+const urlParams = new URLSearchParams(window.location.search);
+const publicUserId = urlParams.get('user') || 1; // Default to 1 if not specified
+
 let appointment = { serviceId: null, profId: null, date: '', time: '', name: '' };
 let servicesCache = [];
 let profsCache = [];
@@ -173,11 +176,11 @@ let profObj = null;
 
 async function initBooking() {
   try {
-    const res = await fetch(`${API_URL}/services`);
+    const res = await fetch(`${API_URL}/services?user_id=${publicUserId}`);
     servicesCache = await res.json();
     renderServices();
     
-    const pRes = await fetch(`${API_URL}/professionals`);
+    const pRes = await fetch(`${API_URL}/professionals?user_id=${publicUserId}`);
     profsCache = await pRes.json();
   } catch(e) {
     document.getElementById('servicesGrid').innerHTML = '<div style="color:#ef4444;">Erro ao carregar serviços. Servidor offline?</div>';
@@ -288,6 +291,7 @@ async function confirmBooking() {
   btn.textContent = 'Aguarde...';
   
   const payload = {
+    user_id: publicUserId,
     customer_name: appointment.name,
     service_id: appointment.serviceId,
     professional_id: appointment.profId,

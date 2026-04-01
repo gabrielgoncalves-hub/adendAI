@@ -112,8 +112,10 @@ app.post('/api/account/upgrade', async (req, res) => {
 // ------------------------
 app.get('/api/services', async (req, res) => {
   try {
+    const userId = req.userId || req.query.user_id;
+    if (!userId) return res.status(400).json({ error: 'ID do usuário não fornecido' });
     const stmt = db.prepare('SELECT * FROM services WHERE user_id = ?');
-    res.json(await stmt.all(req.userId));
+    res.json(await stmt.all(userId));
   } catch (e) {
     res.status(500).send();
   }
@@ -145,8 +147,10 @@ app.delete('/api/services/:id', async (req, res) => {
 // ------------------------
 app.get('/api/professionals', async (req, res) => {
   try {
+    const userId = req.userId || req.query.user_id;
+    if (!userId) return res.status(400).json({ error: 'ID do usuário não fornecido' });
     const stmt = db.prepare('SELECT * FROM professionals WHERE user_id = ?');
-    res.json(await stmt.all(req.userId));
+    res.json(await stmt.all(userId));
   } catch (e) {
     res.status(500).send();
   }
@@ -181,18 +185,11 @@ app.post('/api/appointments', async (req, res) => {
   try {
     const { customer_name, service_id, professional_id, date, time, status } = req.body;
     
-    // We get userId from session if available, otherwise it might be a public booking
-    // For now, let's assume all appointments need a userId. 
-    // If public booking, we'd need a businessId logic. 
-    // To keep it simple for now, we'll try to find userId if not logged in.
-    let targetUserId = req.userId;
+    // Identifica o dono do agendamento (Logado ou via ID enviado pela página pública)
+    let targetUserId = req.userId || req.body.user_id;
     
-    // Fallback logic: if no userId (public booking), we normally would need a way to know WHICH business it is.
-    // Let's assume for public bookings we pass a business_id or something. 
-    // Since we don't have that yet, let's default to a safe value or error out.
     if (!targetUserId) {
-        // Mock fallback: if it's a public booking, we would need to know the business.
-        // For now, let's just use user_id = 1 as a placeholder if not logged in (to be refined).
+        // Fallback para Usuário 1 caso nada seja informado (compatibilidade)
         targetUserId = 1; 
     }
 
