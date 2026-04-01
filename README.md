@@ -65,4 +65,3 @@ http://localhost:3000
 ```
 
 ---
-*Desenvolvido como projeto de portfólio de excelência por Gabriel Gonçalves.*
