@@ -59,18 +59,33 @@ app.post('/api/auth/login', async (req, res) => {
   }
 });
 
-const privateRoutes = ['/api/dashboard', '/api/faturamento', '/api/metricas', '/api/bot/settings', '/api/bot/logs', '/api/account'];
+const privateRoutes = [
+  '/api/dashboard', '/api/faturamento', '/api/metricas', 
+  '/api/bot/settings', '/api/bot/logs', '/api/account',
+  '/api/services', '/api/professionals', '/api/appointments'
+];
+
 app.use(privateRoutes, (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader?.replace('Bearer ', '');
   
-  if (!token || !activeSessions.has(token)) {
-    return res.status(401).json({ error: 'Não autorizado' });
+  // 1. Se estiver logado, libera tudo e seta o userId
+  if (token && activeSessions.has(token)) {
+    req.userId = activeSessions.get(token);
+    return next();
   }
   
-  // Attach userId to request for easy access in handlers
-  req.userId = activeSessions.get(token);
-  next();
+  // 2. Exceções Públicas (Sempre requerem um user_id manual no payload ou query)
+  // Caso 1: Busca de serviços/profissionais via query string (GET público)
+  if (req.method === 'GET' && req.query.user_id && (req.path === '/api/services' || req.path === '/api/professionals')) {
+    return next();
+  }
+  // Caso 2: Criação de agendamento novo (POST público)
+  if (req.method === 'POST' && req.path === '/api/appointments') {
+    return next();
+  }
+
+  return res.status(401).json({ error: 'Não autorizado' });
 });
 
 // ------------------------
