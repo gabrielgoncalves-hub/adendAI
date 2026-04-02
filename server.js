@@ -138,7 +138,10 @@ app.get('/api/services', async (req, res) => {
        const u = await db.prepare('SELECT id FROM users WHERE public_id = ? OR id = ?').get(req.query.user_id, req.query.user_id);
        userId = u ? u.id : null;
     }
-    if (!userId) return res.status(400).json({ error: 'ID do usuário não fornecido' });
+    
+    // Fallback para ID 1 se nada for informado para manter compatibilidade
+    if (!userId) userId = 1;
+    
     const stmt = db.prepare('SELECT * FROM services WHERE user_id = ?');
     res.json(await stmt.all(userId));
   } catch (e) {
@@ -177,8 +180,10 @@ app.get('/api/professionals', async (req, res) => {
        const u = await db.prepare('SELECT id FROM users WHERE public_id = ? OR id = ?').get(req.query.user_id, req.query.user_id);
        userId = u ? u.id : null;
     }
-    if (!userId) return res.status(400).json({ error: 'ID do usuário não fornecido' });
     
+    // Fallback para ID 1
+    if (!userId) userId = 1;
+
     let query = 'SELECT * FROM professionals WHERE user_id = ?';
     // Se não houver userId da sessão (Token), filtrando campos sensíveis para o público.
     if (!req.userId) {
