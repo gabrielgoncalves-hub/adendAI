@@ -3208,7 +3208,7 @@
         if (res.status !== 200) return showToast(data.error || 'Erro no login');
 
         authToken = data.token;
-        authUser = { id: data.id, name: data.name, email: data.email };
+        authUser = { id: data.id, public_id: data.public_id, name: data.name, email: data.email };
         localStorage.setItem('agendai_token', authToken);
         localStorage.setItem('agendai_user', JSON.stringify(authUser));
 
@@ -3631,15 +3631,22 @@
         if (document.getElementById('accEmail')) document.getElementById('accEmail').value = user.email || '';
         if (document.getElementById('accBusiness')) document.getElementById('accBusiness').value = user.business_name || '';
 
+        // Safely update public_id in memory if it was missing
+        if (!authUser.public_id && user.public_id) {
+           authUser.public_id = user.public_id;
+           localStorage.setItem('agendai_user', JSON.stringify(authUser));
+        }
+
         // Update Plan Page Badges
         document.getElementById('badge-gratis').style.display = (user.plan_type !== 'Plano Pro') ? 'inline-block' : 'none';
         document.getElementById('badge-pro').style.display = (user.plan_type === 'Plano Pro') ? 'inline-block' : 'none';
 
         // Update public link in sidebar
-        const publicUrl = window.location.origin + '/agendar.html?user=' + authUser.id;
+        const safeId = authUser.public_id || authUser.id;
+        const publicUrl = window.location.origin + '/agendar.html?user=' + safeId;
         const linkEl = document.getElementById('sidebar-copy-link');
         if (linkEl) {
-           linkEl.textContent = 'agendar.html?user=' + authUser.id;
+           linkEl.textContent = 'agendar.html?user=' + safeId;
            linkEl.href = publicUrl;
            linkEl.target = '_blank';
         }
@@ -3647,8 +3654,9 @@
     }
 
     function copyBookingLink() {
-      if (!authUser || !authUser.id) return showToast('Erro ao obter seu ID');
-      const publicUrl = window.location.origin + '/agendar.html?user=' + authUser.id;
+      if (!authUser) return showToast('Erro ao obter seu perfil');
+      const safeId = authUser.public_id || authUser.id;
+      const publicUrl = window.location.origin + '/agendar.html?user=' + safeId;
       navigator.clipboard.writeText(publicUrl);
       showToast('Link copiado para a área de transferência!');
       window.open(publicUrl, '_blank');

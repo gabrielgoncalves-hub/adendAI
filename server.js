@@ -25,8 +25,9 @@ app.post('/api/auth/register', async (req, res) => {
     const { name, email, password } = req.body;
     if (!name || !email || !password) return res.status(400).json({ error: 'Preencha todos os campos.' });
 
-    const stmt = db.prepare('INSERT INTO users (name, email, password) VALUES (?, ?, ?)');
-    const result = await stmt.run(name, email, hashPassword(password));
+    const publicId = crypto.randomBytes(4).toString('hex');
+    const stmt = db.prepare('INSERT INTO users (public_id, name, email, password) VALUES (?, ?, ?, ?)');
+    const result = await stmt.run(publicId, name, email, hashPassword(password));
     const userId = result.lastInsertRowid;
 
     // Initialize default bot settings for the new user
@@ -52,7 +53,7 @@ app.post('/api/auth/login', async (req, res) => {
 
     const token = crypto.randomUUID();
     activeSessions.set(token, user.id);
-    res.json({ id: user.id, token, name: user.name, email: user.email, business_name: user.business_name, plan_type: user.plan_type });
+    res.json({ id: user.id, public_id: user.public_id, token, name: user.name, email: user.email, business_name: user.business_name, plan_type: user.plan_type });
   } catch (e) {
     console.error("Erro no /login:", e);
     res.status(500).json({ error: "Erro interno: " + e.message });
@@ -131,7 +132,12 @@ app.post('/api/account/upgrade', async (req, res) => {
 // ------------------------
 app.get('/api/services', async (req, res) => {
   try {
-    const userId = req.userId || req.query.user_id;
+    let userId = req.userId;
+    if (!userId && req.query.user_id) {
+       // Acesso público: Resolver o ID seguro
+       const u = await db.prepare('SELECT id FROM users WHERE public_id = ? OR id = ?').get(req.query.user_id, req.query.user_id);
+       userId = u ? u.id : null;
+    }
     if (!userId) return res.status(400).json({ error: 'ID do usuário não fornecido' });
     const stmt = db.prepare('SELECT * FROM services WHERE user_id = ?');
     res.json(await stmt.all(userId));
@@ -166,7 +172,11 @@ app.delete('/api/services/:id', async (req, res) => {
 // ------------------------
 app.get('/api/professionals', async (req, res) => {
   try {
-    const userId = req.userId || req.query.user_id;
+    let userId = req.userId;
+    if (!userId && req.query.user_id) {
+       const u = await db.prepare('SELECT id FROM users WHERE public_id = ? OR id = ?').get(req.query.user_id, req.query.user_id);
+       userId = u ? u.id : null;
+    }
     if (!userId) return res.status(400).json({ error: 'ID do usuário não fornecido' });
     
     let query = 'SELECT * FROM professionals WHERE user_id = ?';
@@ -212,12 +222,13 @@ app.post('/api/appointments', async (req, res) => {
     const { customer_name, service_id, professional_id, date, time, status } = req.body;
     
     // Identifica o dono do agendamento (Logado ou via ID enviado pela página pública)
-    let targetUserId = req.userId || req.body.user_id;
-    
-    if (!targetUserId) {
-        // Fallback para Usuário 1 caso nada seja informado (compatibilidade)
-        targetUserId = 1; 
+    let targetUserId = req.userId;
+    if (!targetUserId && req.body.user_id) {
+       const u = await db.prepare('SELECT id FROM users WHERE public_id = ? OR id = ?').get(req.body.user_id, req.body.user_id);
+       targetUserId = u ? u.id : null;
     }
+    
+    if (!targetUserId) targetUserId = 1; 
 
     const stmt = db.prepare('INSERT INTO appointments (user_id, customer_name, service_id, professional_id, date, time, status) VALUES (?, ?, ?, ?, ?, ?, ?)');
     const result = await stmt.run(targetUserId, customer_name, service_id, professional_id, date, time, status || 'pending');
