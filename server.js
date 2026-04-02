@@ -77,11 +77,15 @@ app.use(privateRoutes, (req, res, next) => {
   
   // 2. Exceções Públicas (Sempre requerem um user_id manual no payload ou query)
   // Caso 1: Busca de serviços/profissionais via query string (GET público)
-  if (req.method === 'GET' && req.query.user_id && (req.path === '/api/services' || req.path === '/api/professionals')) {
+  const isPublicGet = req.method === 'GET' && req.query.user_id;
+  const isServicesOrProfs = req.originalUrl.includes('/api/services') || req.originalUrl.includes('/api/professionals');
+
+  if (isPublicGet && isServicesOrProfs) {
     return next();
   }
+
   // Caso 2: Criação de agendamento novo (POST público)
-  if (req.method === 'POST' && req.path === '/api/appointments') {
+  if (req.method === 'POST' && req.originalUrl.includes('/api/appointments')) {
     return next();
   }
 
