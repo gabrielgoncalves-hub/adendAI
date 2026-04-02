@@ -37,6 +37,16 @@ body {
 .step-desc { color: var(--text-300); font-size: .95rem; margin-bottom: 32px; }
 
 .grid { display: grid; grid-template-columns: 1fr; gap: 16px; margin-bottom: 32px; }
+@media(max-width:600px) {
+  .navbar { padding: 16px 20px; }
+  .container { margin: 24px auto; padding: 0 16px; min-height: calc(100vh - 120px); }
+  .step-title { font-size: 1.5rem; }
+  .grid { gap: 12px; }
+  .card-opt { padding: 16px; }
+  .card-title { font-size: 1rem; }
+  .time-grid { grid-template-columns: repeat(3, 1fr); }
+  .receipt-icon { font-size: 2.5rem; }
+}
 @media(min-width:500px) { .grid { grid-template-columns: 1fr 1fr; } }
 
 .card-opt {

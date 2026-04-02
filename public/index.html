@@ -1638,15 +1638,53 @@
       nav {
         padding: 0 20px;
       }
-
       .hero {
         padding: 80px 20px 60px;
       }
-
       .section {
         padding: 60px 20px;
       }
     }
+
+    @media(max-width:600px) {
+      .navbar-links { display: none; }
+      .hero-title { font-size: 2.2rem; }
+      .hero-tagline { font-size: 1rem; }
+      .metrics-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
+      .db-content { padding: 20px 16px 100px; }
+      .db-header { flex-direction: column; align-items: flex-start; gap: 16px; margin-bottom: 24px; }
+      .db-actions { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+      .btn-ghost, .btn-primary { padding: 12px; font-size: 0.85rem; }
+      .mobile-nav { display: flex; }
+      .t-grid { grid-template-columns: 1fr; }
+      .section-title { font-size: 1.8rem; }
+      .footer-links { flex-direction: column; gap: 12px; }
+    }
+
+    /* MOBILE BOTTOM NAV */
+    .mobile-nav {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: rgba(16, 22, 18, 0.95);
+      backdrop-filter: blur(12px);
+      border-top: 1px solid var(--card-border);
+      height: 70px;
+      display: none;
+      justify-content: space-around;
+      align-items: center;
+      z-index: 1000;
+      padding: 0 10px;
+    }
+
+    .m-nav-item {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 6px; font-size: 0.65rem; color: var(--text-500);
+      cursor: pointer; transition: .2s;
+    }
+
+    .m-nav-item i { font-size: 1.3rem; }
+    .m-nav-item.active { color: var(--blue-400); }
+    .m-nav-item:active { transform: scale(0.9); }
+    
   </style>
 </head>
 
@@ -2042,8 +2080,16 @@
           </div>
           <div class="db-actions">
             <button class="btn-ghost" onclick="showPage('cadastro')">+ Novo Serviço</button>
-            <button class="btn-primary" onclick="copyBookingLink()">Copiar Link de Agendamento</button>
+            <button class="btn-primary" onclick="copyBookingLink()">Copiar Link</button>
           </div>
+        </div>
+
+        <!-- NEW MOBILE BOTTOM NAV (Visible only on < 600px) -->
+        <div class="mobile-nav" id="dashMobileNav">
+          <div class="m-nav-item active" onclick="showPage('dashboard')">📊<span>Dash</span></div>
+          <div class="m-nav-item" onclick="showPage('agendamentos-page')">📅<span>Agenda</span></div>
+          <div class="m-nav-item" onclick="showPage('cadastro')">➕<span>Novo</span></div>
+          <div class="m-nav-item" onclick="showPage('ajustes')">⚙️<span>Ajustes</span></div>
         </div>
 
         <!-- Metrics -->
@@ -2986,7 +3032,7 @@
 
     // PAGE SYSTEM
     function showPage(id) {
-      const protectedPages = ['dashboard', 'agendamentos-page', 'cadastro'];
+      const protectedPages = ['dashboard', 'agendamentos-page', 'cadastro', 'ajustes'];
       if (protectedPages.includes(id) && !authToken) {
         showToast('Faça login para acessar o painel!');
         return openAuth('login');
@@ -2995,6 +3041,20 @@
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
       document.getElementById(id).classList.add('active');
       window.scrollTo(0, 0);
+
+      // Update Sidebar active state
+      document.querySelectorAll('.nav-item').forEach(el => {
+        el.classList.toggle('active', el.getAttribute('onclick')?.includes(`'${id}'`));
+      });
+
+      // Update Mobile Nav active state
+      document.querySelectorAll('.m-nav-item').forEach(el => {
+        el.classList.toggle('active', el.getAttribute('onclick')?.includes(`'${id}'`));
+      });
+
+      // Show/Hide Mobile Nav based on page
+      const showMobileNav = ['dashboard', 'agendamentos-page', 'cadastro', 'ajustes'].includes(id);
+      document.getElementById('dashMobileNav').style.display = (showMobileNav && window.innerWidth <= 600) ? 'flex' : 'none';
     }
 
     function scrollTo(id) {
