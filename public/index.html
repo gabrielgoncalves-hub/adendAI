@@ -2025,6 +2025,9 @@
             <div>
               <div class="su-name" id="sidebar-name">Barbearia Corte Certo</div>
               <div class="su-role" id="sidebar-plan">Plano Pro</div>
+              <div id="sidebar-link-area" style="margin-top:8px; font-size:0.7rem; color:var(--text-500); word-break:break-all;">
+                 Página: <a href="#" id="sidebar-copy-link" style="color:var(--blue-400); text-decoration:none;">Carregando link...</a>
+              </div>
             </div>
           </div>
         </div>
@@ -2039,8 +2042,7 @@
           </div>
           <div class="db-actions">
             <button class="btn-ghost" onclick="showPage('cadastro')">+ Novo Serviço</button>
-            <button class="btn-primary" onclick="window.open('agendar.html','_blank')">Copiar Link de
-              Agendamento</button>
+            <button class="btn-primary" onclick="copyBookingLink()">Copiar Link de Agendamento</button>
           </div>
         </div>
 
@@ -3206,7 +3208,7 @@
         if (res.status !== 200) return showToast(data.error || 'Erro no login');
 
         authToken = data.token;
-        authUser = { name: data.name, email: data.email };
+        authUser = { id: data.id, name: data.name, email: data.email };
         localStorage.setItem('agendai_token', authToken);
         localStorage.setItem('agendai_user', JSON.stringify(authUser));
 
@@ -3632,7 +3634,24 @@
         // Update Plan Page Badges
         document.getElementById('badge-gratis').style.display = (user.plan_type !== 'Plano Pro') ? 'inline-block' : 'none';
         document.getElementById('badge-pro').style.display = (user.plan_type === 'Plano Pro') ? 'inline-block' : 'none';
+
+        // Update public link in sidebar
+        const publicUrl = window.location.origin + '/agendar.html?user=' + authUser.id;
+        const linkEl = document.getElementById('sidebar-copy-link');
+        if (linkEl) {
+           linkEl.textContent = 'agendar.html?user=' + authUser.id;
+           linkEl.href = publicUrl;
+           linkEl.target = '_blank';
+        }
       } catch (e) { console.error('Error loadAccount', e); }
+    }
+
+    function copyBookingLink() {
+      if (!authUser || !authUser.id) return showToast('Erro ao obter seu ID');
+      const publicUrl = window.location.origin + '/agendar.html?user=' + authUser.id;
+      navigator.clipboard.writeText(publicUrl);
+      showToast('Link copiado para a área de transferência!');
+      window.open(publicUrl, '_blank');
     }
 
     async function saveAccount() {

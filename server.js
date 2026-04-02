@@ -52,7 +52,7 @@ app.post('/api/auth/login', async (req, res) => {
 
     const token = crypto.randomUUID();
     activeSessions.set(token, user.id);
-    res.json({ token, name: user.name, email: user.email, business_name: user.business_name, plan_type: user.plan_type });
+    res.json({ id: user.id, token, name: user.name, email: user.email, business_name: user.business_name, plan_type: user.plan_type });
   } catch (e) {
     console.error("Erro no /login:", e);
     res.status(500).json({ error: "Erro interno: " + e.message });
