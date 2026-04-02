@@ -3107,6 +3107,7 @@
       </div>
       <div class="apt-price">R$${a.price ? a.price.toFixed(2) : '0.00'}</div>
       <div class="apt-status s-${a.status}" style="cursor:pointer;" onclick="changeAptStatus(${a.id}, '${a.status}')" title="Clique para alterar status">${stLabel}</div>
+      <button style="border:none;background:transparent;cursor:pointer;color:var(--red);font-size:1.1rem;padding:0 8px;" onclick="deleteAppointment(${a.id})" title="Excluir agendamento">✖</button>
     </div>`;
       }).join('');
     }
@@ -3211,9 +3212,23 @@
 
         updateAuthUI();
         showToast('Login realizado!');
+        refreshAllData(); // Carregar dados da nova conta
         showPage('dashboard');
         document.getElementById('login-password').value = '';
       } catch (e) { console.error(e); showToast('Erro no servidor'); }
+    }
+
+    function refreshAllData() {
+      if (!authToken) return;
+      loadDashboard();
+      loadServices();
+      loadProfessionals();
+      fetchCalendarApts();
+      loadAllAppointments();
+      loadFaturamento();
+      loadMetricas();
+      loadBotSettings();
+      loadAccount();
     }
 
     async function doRegister() {
@@ -3239,8 +3254,17 @@
     function doLogout() {
       authToken = null;
       authUser = null;
+      allAptsForCal = []; // Limpar cache do calendário
       localStorage.removeItem('agendai_token');
       localStorage.removeItem('agendai_user');
+      
+      // Limpar UI para evitar "vazamento" de dados entre trocas de conta
+      const grids = ['servicesGrid', 'profissionaisGrid', 'aptList', 'allAptsList', 'faturamentoList'];
+      grids.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = '';
+      });
+
       updateAuthUI();
       showPage('landing');
     }
@@ -3414,6 +3438,7 @@
         </div>
         <div class="apt-price">R$${a.price.toFixed(2)}</div>
         <div class="apt-status s-${a.status}" style="cursor:pointer;text-align:center;min-width:100px;" onclick="changeAllAptStatus(${a.id}, '${a.status}')" title="Clique para alterar status">${stLabel}</div>
+        <button style="border:none;background:transparent;cursor:pointer;color:var(--red);font-size:1.1rem;padding:0 12px;" onclick="deleteAppointment(${a.id})" title="Excluir agendamento">✖</button>
       </div>`;
         }).join('');
       } catch (e) { console.error(e); }
@@ -3680,6 +3705,7 @@
             </div>
             <div class="apt-price">R$${a.price.toFixed(2)}</div>
             <div class="apt-status s-${a.status}" style="cursor:pointer;" onclick="changeAptStatus(${a.id}, '${a.status}')" title="Clique para alterar status">${stLabel}</div>
+            <button style="border:none;background:transparent;cursor:pointer;color:var(--red);font-size:1.1rem;padding:0 8px;" onclick="deleteAppointment(${a.id})" title="Excluir agendamento">✖</button>
           </div>`;
             }).join('');
           }
@@ -3735,18 +3761,38 @@
       loadDashboard();
     }
 
+    async function deleteAppointment(id) {
+      if (!confirm('Deseja excluir permanentemente este agendamento?')) return;
+      try {
+        await fetch(`${API_URL}/appointments/${id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': 'Bearer ' + authToken }
+        });
+        showToast('Agendamento excluído!');
+        
+        // Atualizar interface
+        if (typeof selectedCalDate !== 'undefined' && selectedCalDate) {
+          await fetchCalendarApts();
+          renderAptsForDate(selectedCalDate);
+        }
+        
+        loadDashboard();
+        loadAllAppointments();
+      } catch (e) { console.error(e); }
+    }
+
     // INIT
     updateAuthUI();
     if (authToken) {
       showPage('dashboard');
-      loadDashboard();
+      refreshAllData();
     } else {
       showPage('landing');
+      // No token, but maybe we want to show landing info? 
+      // loadServices and loadProfessionals now check for authToken, so they won't run.
     }
     setupCalendarNav();
     buildCalendar();
-    loadServices();
-    loadProfessionals();
   </script>
 </body>
 

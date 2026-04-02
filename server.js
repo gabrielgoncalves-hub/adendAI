@@ -258,6 +258,16 @@ app.put('/api/appointments/:id/status', async (req, res) => {
   }
 });
 
+app.delete('/api/appointments/:id', async (req, res) => {
+  try {
+    const stmt = db.prepare('DELETE FROM appointments WHERE id = ? AND user_id = ?');
+    await stmt.run(req.params.id, req.userId);
+    res.status(204).send();
+  } catch (e) {
+    res.status(500).send();
+  }
+});
+
 // ------------------------
 // DASHBOARD
 // ------------------------
