@@ -168,7 +168,14 @@ app.get('/api/professionals', async (req, res) => {
   try {
     const userId = req.userId || req.query.user_id;
     if (!userId) return res.status(400).json({ error: 'ID do usuário não fornecido' });
-    const stmt = db.prepare('SELECT * FROM professionals WHERE user_id = ?');
+    
+    let query = 'SELECT * FROM professionals WHERE user_id = ?';
+    // Se não houver userId da sessão (Token), filtrando campos sensíveis para o público.
+    if (!req.userId) {
+      query = 'SELECT id, user_id, name, role, services, color FROM professionals WHERE user_id = ?';
+    }
+    
+    const stmt = db.prepare(query);
     res.json(await stmt.all(userId));
   } catch (e) {
     res.status(500).send();
