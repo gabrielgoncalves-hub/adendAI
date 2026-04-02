@@ -95,11 +95,23 @@ const initDb = async () => {
   `);
 
   // Migrations for existing Databases
+  try { await client.execute("ALTER TABLE users ADD COLUMN public_id TEXT;"); } catch(e) {}
+  try { await client.execute("UPDATE users SET public_id = lower(hex(randomblob(4))) WHERE public_id IS NULL;"); } catch(e) {}
+  
   try { await client.execute("ALTER TABLE services ADD COLUMN user_id INTEGER;"); } catch(e) {}
+  try { await client.execute("UPDATE services SET user_id = 1 WHERE user_id IS NULL;"); } catch(e) {}
+  
   try { await client.execute("ALTER TABLE professionals ADD COLUMN user_id INTEGER;"); } catch(e) {}
+  try { await client.execute("UPDATE professionals SET user_id = 1 WHERE user_id IS NULL;"); } catch(e) {}
+  
   try { await client.execute("ALTER TABLE appointments ADD COLUMN user_id INTEGER;"); } catch(e) {}
+  try { await client.execute("UPDATE appointments SET user_id = 1 WHERE user_id IS NULL;"); } catch(e) {}
+  
   try { await client.execute("ALTER TABLE bot_settings ADD COLUMN user_id INTEGER;"); } catch(e) {}
+  try { await client.execute("UPDATE bot_settings SET user_id = 1 WHERE user_id IS NULL;"); } catch(e) {}
+  
   try { await client.execute("ALTER TABLE bot_logs ADD COLUMN user_id INTEGER;"); } catch(e) {}
+  try { await client.execute("UPDATE bot_logs SET user_id = 1 WHERE user_id IS NULL;"); } catch(e) {}
 };
 
 module.exports = { db, initDb };
