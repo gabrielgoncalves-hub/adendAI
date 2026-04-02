@@ -3006,9 +3006,16 @@
     let allAptsForCal = [];
 
     async function fetchCalendarApts() {
+      if (!authToken) return;
       try {
-        const res = await fetch(`${API_URL}/appointments`);
-        if (res.ok) allAptsForCal = await res.json();
+        const res = await fetch(`${API_URL}/appointments`, { headers: { 'Authorization': 'Bearer ' + authToken } });
+        if (res.ok) {
+           const data = await res.json();
+           if (Array.isArray(data)) {
+              allAptsForCal = data;
+              buildCalendar(); // rebuild to show dots
+           }
+        }
       } catch (e) { console.error("Error fetching for calendar", e); }
     }
 
