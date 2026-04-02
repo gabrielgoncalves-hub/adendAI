@@ -1639,25 +1639,28 @@
     }
 
     @media(max-width:600px) {
-      .nav-links { display: none !important; }
+      .nav-links, #nav-user-name, #nav-cta-auth .btn-primary { display: none !important; }
+      nav { padding: 12px 16px; border-bottom: 1px solid var(--card-border); }
       .nav-cta { gap: 8px !important; }
-      .nav-cta .btn-primary { font-size: 0.75rem; padding: 10px 16px; }
-      .nav-cta .btn-ghost { font-size: 0.75rem; padding: 10px 12px; }
-      .logo { font-size: 1.2rem; }
+      .logo { font-size: 1.1rem; }
       
-      .hero-title { font-size: 2.2rem; }
+      .hero-title { font-size: 2.1rem; }
       .hero-tagline { font-size: 1rem; }
-      .metrics-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
-      .db-content { padding: 20px 16px 120px; }
-      .db-header { flex-direction: column; align-items: flex-start; gap: 16px; margin-bottom: 24px; }
-      .db-actions { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-      .btn-ghost, .btn-primary { padding: 12px; font-size: 0.8rem; }
-      .mobile-nav { display: flex; }
-      .t-grid { grid-template-columns: 1fr; }
-      .section-title { font-size: 1.8rem; }
-      .footer-links { flex-direction: column; gap: 12px; }
-      .auth-card { padding: 24px !important; border-radius: 16px; }
-      .auth-wrapper { padding: 20px !important; }
+      
+      .db-header { margin-bottom: 20px; }
+      .db-header h1 { font-size: 1.6rem !important; }
+      .db-header p { font-size: 0.85rem; }
+      .db-actions { grid-template-columns: 1fr 1fr; }
+      
+      .metrics-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+      .metric-card { padding: 14px !important; border-radius: 16px; }
+      .metric-card h3 { font-size: 0.65rem !important; margin-bottom: 8px; }
+      .metric-card .m-value { font-size: 1.5rem !important; letter-spacing: -1px; }
+      .metric-card .m-change { font-size: 0.65rem !important; margin-top: 8px; }
+
+      .db-content { padding: 20px 14px 100px; }
+      .auth-card { padding: 24px 20px !important; }
+      .section { padding: 40px 20px; }
     }
 
     /* MOBILE BOTTOM NAV */
@@ -2098,36 +2101,36 @@
         <!-- Metrics -->
         <div class="metrics-grid">
           <div class="metric-card">
-            <div class="metric-top">
-              <span class="metric-label">Receita Hoje</span>
-              <span class="metric-icon">💰</span>
+            <div style="display:flex; justify-content:space-between;">
+              <h3>RECEITA HOJE</h3>
+              <span>💰</span>
             </div>
-            <div class="metric-val" style="color:var(--green);">R$847</div>
-            <div class="metric-change up">↑ +12% vs ontem</div>
+            <div class="m-value" id="revToday">R$0.00</div>
+            <div class="m-change pos" id="revChange">↑ +0% vs ontem</div>
           </div>
           <div class="metric-card">
-            <div class="metric-top">
-              <span class="metric-label">Agend. Hoje</span>
-              <span class="metric-icon">📅</span>
+            <div style="display:flex; justify-content:space-between;">
+              <h3>AGEND. HOJE</h3>
+              <span>📅</span>
             </div>
-            <div class="metric-val" style="color:var(--blue-300);">14</div>
-            <div class="metric-change up">↑ 2 a confirmar</div>
+            <div class="m-value" id="aptToday">0</div>
+            <div class="m-change pos" id="aptChange">↑ 0 a confirmar</div>
           </div>
           <div class="metric-card">
-            <div class="metric-top">
-              <span class="metric-label">Taxa de Presença</span>
-              <span class="metric-icon">✅</span>
+            <div style="display:flex; justify-content:space-between;">
+              <h3>TAXA DE PRESENÇA</h3>
+              <span>✅</span>
             </div>
-            <div class="metric-val" style="color:var(--cyan);">94%</div>
-            <div class="metric-change up">↑ +8% este mês</div>
+            <div class="m-value" id="attRate">0%</div>
+            <div class="m-change pos" id="attChange">↑ +0% este mês</div>
           </div>
           <div class="metric-card">
-            <div class="metric-top">
-              <span class="metric-label">Receita Mensal</span>
-              <span class="metric-icon">📈</span>
+            <div style="display:flex; justify-content:space-between;">
+              <h3>RECEITA MENSAL</h3>
+              <span>📊</span>
             </div>
-            <div class="metric-val">R$12.4k</div>
-            <div class="metric-change up">↑ +18% vs março</div>
+            <div class="m-value" id="revMonth">R$0.00</div>
+            <div class="m-change pos" id="revMonthChange">↑ +0% vs março</div>
           </div>
         </div>
 
